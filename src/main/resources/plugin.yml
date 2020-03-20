@@ -1,0 +1,5 @@
+name: bound
+main: com.ipedg.minecraft.bound
+version: 1.0
+commands:
+  bound:
