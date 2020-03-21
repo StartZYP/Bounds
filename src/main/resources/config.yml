@@ -1,2 +1,3 @@
 ItemName: "新手"
 Msg: "这个物品不属于你"
+BoundMsg: "绑定成功"

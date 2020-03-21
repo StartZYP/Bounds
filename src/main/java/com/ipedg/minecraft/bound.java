@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerChangedMainHandEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.Inventory;
@@ -25,6 +26,7 @@ import java.io.File;
 public class bound extends JavaPlugin implements Listener {
     private String Msg;
     private String libao;
+    private String BoundMsg;
 
     @Override
     public void onEnable() {
@@ -42,7 +44,6 @@ public class bound extends JavaPlugin implements Listener {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender.isOp()&&args.length==1){
             if (args[0].equalsIgnoreCase("reload")){
-                saveConfig();
                 ReloadConfig();
                 sender.sendMessage("重载成功");
             }
@@ -54,12 +55,49 @@ public class bound extends JavaPlugin implements Listener {
         reloadConfig();
         libao = getConfig().getString("ItemName");
         Msg = getConfig().getString("Msg");
+        BoundMsg = getConfig().getString("BoundMsg");
+    }
+
+    @EventHandler
+    public void PlayerDropItem(PlayerDropItemEvent event){
+        Player whoClicked = event.getPlayer();
+        ItemStack item = event.getItemDrop().getItemStack();
+        if (whoClicked.isOp()){
+            return;
+        }
+        if (item!=null&&item.getType()!= Material.AIR){
+            if (item.hasItemMeta()){
+                ItemMeta itemMeta = item.getItemMeta();
+                if (itemMeta.hasLore()){
+                    if (itemMeta.getLore().contains(libao)){
+                        int num = ItemHashBound(item, whoClicked.getName());
+                        switch (num){
+                            case 1:
+                                break;
+                            case 2:
+                                event.setCancelled(true);
+                                event.getItemDrop().setItemStack(null);
+                                whoClicked.sendMessage(Msg);
+                                break;
+                            case 3:
+                                event.setCancelled(true);
+                                event.getItemDrop().setItemStack(setNbt(item,whoClicked.getName()));
+                                whoClicked.sendMessage(BoundMsg);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @EventHandler
     public void PlayerInventoryAdd(InventoryClickEvent event){
         Player whoClicked = (Player) event.getWhoClicked();
         ItemStack item = event.getCurrentItem();
+        if (whoClicked.isOp()){
+            return;
+        }
         if (item!=null&&item.getType()!= Material.AIR){
             if (item.hasItemMeta()){
                 ItemMeta itemMeta = item.getItemMeta();
@@ -77,6 +115,7 @@ public class bound extends JavaPlugin implements Listener {
                             case 3:
                                 event.setCancelled(true);
                                 event.setCurrentItem(setNbt(item,whoClicked.getName()));
+                                whoClicked.sendMessage(BoundMsg);
                                 break;
                         }
                     }
@@ -104,6 +143,7 @@ public class bound extends JavaPlugin implements Listener {
                                 whoClicked.sendMessage(Msg);
                                 break;
                             case 3:
+                                //whoClicked.sendMessage(BoundMsg);
                                 break;
                         }
                     }
@@ -116,6 +156,9 @@ public class bound extends JavaPlugin implements Listener {
     public void PlayerInventoryAdd(PlayerPickupItemEvent event){
         ItemStack item = event.getItem().getItemStack();
         Player player = event.getPlayer();
+        if (player.isOp()){
+            return;
+        }
         if (item!=null&&item.getType()!= Material.AIR){
             if (item.hasItemMeta()){
                 ItemMeta itemMeta = item.getItemMeta();
@@ -131,6 +174,7 @@ public class bound extends JavaPlugin implements Listener {
                                 player.sendMessage(Msg);
                                 break;
                             case 3:
+                                //player.sendMessage(BoundMsg);
                                 break;
                         }
                     }
@@ -143,6 +187,9 @@ public class bound extends JavaPlugin implements Listener {
     public void PlayerChangeItem(PlayerItemHeldEvent event){
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
+        if (player.isOp()){
+            return;
+        }
         if (item!=null&&item.getType()!= Material.AIR){
             if (item.hasItemMeta()){
                 ItemMeta itemMeta = item.getItemMeta();
@@ -160,6 +207,7 @@ public class bound extends JavaPlugin implements Listener {
                             case 3:
                                 event.setCancelled(true);
                                 player.getInventory().setItemInMainHand(setNbt(item,player.getName()));
+                                player.sendMessage(BoundMsg);
                                 break;
                         }
                     }
